@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hexle-ui-nginx
+  namespace: hexle
+data:
+  default.conf: |
+    server {
+        listen 80;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # Use Kubernetes cluster DNS resolver
+        resolver kube-dns.kube-system.svc.cluster.local valid=10s;
+        set $api_upstream http://hexle-api.hexle.svc.cluster.local:8080;
+
+        location /api/ {
+            proxy_pass $api_upstream;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+    }

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hexle-ui
+  namespace: hexle
+  labels:
+    app: hexle-ui
+spec:
+  type: LoadBalancer
+  loadBalancerIP: 10.0.10.117
+  selector:
+    app: hexle-ui
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

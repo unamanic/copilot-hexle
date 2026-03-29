@@ -1,0 +1,11 @@
+.gradle/
+build/
+*.class
+*.jar
+*.log
+.idea/
+*.iml
+node_modules/
+dist/
+ui/.vite/
+ui/node_modules/

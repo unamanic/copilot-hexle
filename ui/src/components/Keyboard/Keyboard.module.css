@@ -1,0 +1,61 @@
+.keyboard {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(4px, 1.2vw, 8px);
+  align-items: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 4px;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  gap: clamp(4px, 1.2vw, 6px);
+  justify-content: center;
+  width: 100%;
+}
+
+.key {
+  height: clamp(46px, 11vw, 58px);
+  /* 10 keys + 9 gaps of ~5px in row 1; solve for key width */
+  width: clamp(26px, calc((100vw - 32px - 9 * clamp(4px, 1.2vw, 6px)) / 10), 43px);
+  flex-shrink: 0;
+  border: none;
+  border-radius: 4px;
+  background: #818384;
+  color: #ffffff;
+  font-size: clamp(0.65rem, 2vw, 0.85rem);
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: background 0.2s;
+  padding: 0;
+}
+
+.key:hover {
+  filter: brightness(1.15);
+}
+
+.wide {
+  width: clamp(40px, calc((100vw - 32px - 9 * clamp(4px, 1.2vw, 6px)) / 10 * 1.55), 65px);
+  font-size: clamp(0.6rem, 1.8vw, 0.75rem);
+}
+
+.correct {
+  background: #538d4e;
+}
+
+.present {
+  background: #b59f3b;
+}
+
+.absent {
+  background: #3a3a3c;
+}

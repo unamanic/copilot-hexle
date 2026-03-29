@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hexle-ui
+  namespace: hexle
+  labels:
+    app: hexle-ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hexle-ui
+  template:
+    metadata:
+      labels:
+        app: hexle-ui
+    spec:
+      containers:
+        - name: hexle-ui
+          image: unamanic/hexle-ui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: hexle-ui-nginx

@@ -1,0 +1,103 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { startGame, submitGuess } from '../api/gameApi';
+import type { GameState, LetterFeedback } from '../types/game';
+
+const initialState: GameState = {
+  gameId: null,
+  guesses: [],
+  feedback: [],
+  status: null,
+  solution: null,
+  maxGuesses: 6,
+  loading: false,
+  error: null,
+  currentInput: '',
+};
+
+export const startGameThunk = createAsyncThunk('game/start', async () => {
+  return await startGame();
+});
+
+export const submitGuessThunk = createAsyncThunk(
+  'game/submitGuess',
+  async (guess: string, { getState, rejectWithValue }) => {
+    const state = getState() as { game: GameState };
+    const { gameId } = state.game;
+    if (!gameId) return rejectWithValue('No active game');
+    try {
+      const result = await submitGuess(gameId, guess);
+      return { guess, result };
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
+      const rawMessage = data?.error ?? data?.message ?? 'Failed to submit guess';
+      const message = rawMessage.toLowerCase().includes('not a valid word') ? 'Not in word list' : rawMessage;
+      return rejectWithValue(message);
+    }
+  },
+);
+
+const gameSlice = createSlice({
+  name: 'game',
+  initialState,
+  reducers: {
+    addLetter(state, action: PayloadAction<string>) {
+      if (state.currentInput.length < 6) {
+        state.currentInput += action.payload.toUpperCase();
+      }
+    },
+    removeLetter(state) {
+      state.currentInput = state.currentInput.slice(0, -1);
+    },
+    clearError(state) {
+      state.error = null;
+    },
+    clearCurrentInput(state) {
+      state.currentInput = '';
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(startGameThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(startGameThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.gameId = action.payload.gameId;
+        state.guesses = [];
+        state.feedback = [];
+        state.status = null;
+        state.solution = null;
+        state.currentInput = '';
+        state.error = null;
+      })
+      .addCase(startGameThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message ?? 'Failed to start game';
+      })
+      .addCase(submitGuessThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(submitGuessThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const { guess, result } = action.payload as {
+          guess: string;
+          result: { feedback: LetterFeedback[]; status: GameState['status']; solution?: string };
+        };
+        state.guesses.push(guess);
+        state.feedback.push(result.feedback);
+        state.status = result.status;
+        state.solution = result.solution ?? null;
+        state.currentInput = '';
+      })
+      .addCase(submitGuessThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string ?? 'Failed to submit guess';
+      });
+  },
+});
+
+export const { addLetter, removeLetter, clearError, clearCurrentInput } = gameSlice.actions;
+export default gameSlice.reducer;
