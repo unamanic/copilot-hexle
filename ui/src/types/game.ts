@@ -13,6 +13,15 @@ export interface GameState {
   currentInput: string;
 }
 
+export interface ApiGameState {
+  gameId: string;
+  guesses: string[];
+  feedback: LetterFeedback[][];
+  status: GameStatus;
+  solution?: string;
+  maxGuesses: number;
+}
+
 export interface GuessResponse {
   feedback: LetterFeedback[];
   status: GameStatus;

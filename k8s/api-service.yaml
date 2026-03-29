@@ -8,10 +8,6 @@ metadata:
 spec:
   type: LoadBalancer
   loadBalancerIP: 10.0.10.116
-  sessionAffinity: ClientIP          # Ensures same client always hits same pod
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 3600
   selector:
     app: hexle-api
   ports:

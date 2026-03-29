@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { startGame, submitGuess } from '../api/gameApi';
-import type { GameState, LetterFeedback } from '../types/game';
+import { startGame, submitGuess, getGameStatus } from '../api/gameApi';
+import type { GameState, LetterFeedback, ApiGameState } from '../types/game';
 
 const initialState: GameState = {
   gameId: null,
@@ -18,6 +18,18 @@ const initialState: GameState = {
 export const startGameThunk = createAsyncThunk('game/start', async () => {
   return await startGame();
 });
+
+export const resumeGameThunk = createAsyncThunk(
+  'game/resume',
+  async (gameId: string, { rejectWithValue }) => {
+    try {
+      const state = await getGameStatus(gameId);
+      return state;
+    } catch {
+      return rejectWithValue('Game not found');
+    }
+  }
+);
 
 export const submitGuessThunk = createAsyncThunk(
   'game/submitGuess',
@@ -95,6 +107,21 @@ const gameSlice = createSlice({
       .addCase(submitGuessThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string ?? 'Failed to submit guess';
+      })
+      .addCase(resumeGameThunk.fulfilled, (state, action) => {
+        const s = action.payload as ApiGameState;
+        state.gameId = s.gameId;
+        state.guesses = s.guesses;
+        state.feedback = s.feedback;
+        state.status = s.status;
+        state.solution = s.solution ?? null;
+        state.currentInput = '';
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(resumeGameThunk.rejected, (state) => {
+        state.gameId = null;
+        state.loading = false;
       });
   },
 });

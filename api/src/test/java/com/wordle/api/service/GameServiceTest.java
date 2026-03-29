@@ -1,23 +1,52 @@
 package com.wordle.api.service;
 
 import com.wordle.api.model.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class GameServiceTest {
 
-    @Autowired
+    @Mock
+    RedisTemplate<String, GameState> redisTemplate;
+
+    @Mock
+    ValueOperations<String, GameState> valueOperations;
+
+    @Mock
+    WordService wordService;
+
+    private Map<String, GameState> store;
     private GameService gameService;
 
-    @Autowired
-    private WordService wordService;
+    @BeforeEach
+    void setUp() {
+        store = new HashMap<>();
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        doAnswer(inv -> {
+            store.put(inv.getArgument(0), inv.getArgument(1));
+            return null;
+        }).when(valueOperations).set(anyString(), any(), anyLong(), any());
+        when(valueOperations.get(anyString())).thenAnswer(inv -> store.get(inv.getArgument(0)));
+
+        List<String> wordList = Arrays.asList("castle", "planet", "bridge", "orange", "purple", "yellow", "wordle");
+        when(wordService.getWordList()).thenReturn(wordList);
+        when(wordService.getRandomWord()).thenReturn("wordle");
+        when(wordService.isValidWord(anyString())).thenAnswer(inv -> wordList.contains(inv.getArgument(0)));
+
+        gameService = new GameService(redisTemplate, wordService);
+    }
 
     @Test
     void startGameCreatesNewGameWithInProgressStatus() {
@@ -31,18 +60,7 @@ class GameServiceTest {
 
     @Test
     void submitGuessWithCorrectWordReturnsWinStatus() {
-        // Peek at the actual game to get the solution
-        GameState started = gameService.startGame();
-        String gameId = started.getGameId();
-        // Get the real state with solution via internal call
-        GameState internal = gameService.getGameState(gameId);
-        // We need the solution — start a new game and exploit the fact that
-        // submitting the solution should win. We can inject a known solution
-        // by using a word we know is in the list.
         String knownWord = wordService.getWordList().get(0);
-
-        // Start fresh games until we can test; instead, directly test the algorithm
-        // by calling computeFeedback with a controlled input
         List<LetterFeedback> feedback = gameService.computeFeedback(knownWord, knownWord);
         assertThat(feedback).hasSize(6)
                 .containsOnly(LetterFeedback.CORRECT);
@@ -50,8 +68,6 @@ class GameServiceTest {
 
     @Test
     void submitGuessWrongWordReturnsCorrectFeedback() {
-        // "castle" vs "castle" => all CORRECT
-        // "castle" vs "tasted" — not same length for this test; use controlled strings
         List<LetterFeedback> feedback = gameService.computeFeedback("castle", "castle");
         assertThat(feedback).containsOnly(LetterFeedback.CORRECT);
     }
@@ -61,16 +77,12 @@ class GameServiceTest {
         GameState state = gameService.startGame();
         String gameId = state.getGameId();
 
-        // Find a word that is NOT the solution by picking one that differs
-        // We need a word we know is in the dict. Grab a few words.
+        // wordService returns "wordle" as solution; iterate through other words until LOSE
         List<String> words = wordService.getWordList();
-        String wrongWord = null;
         for (String w : words) {
-            // submit, if result is not WIN we keep going
             try {
                 GuessResponse r = gameService.submitGuess(gameId, w);
                 if (r.getStatus() == GameStatus.WIN) {
-                    // We accidentally guessed the solution — start over
                     state = gameService.startGame();
                     gameId = state.getGameId();
                 } else if (r.getStatus() == GameStatus.LOSE) {
@@ -79,22 +91,13 @@ class GameServiceTest {
                     return;
                 }
             } catch (IllegalStateException e) {
-                // game already over
                 break;
             }
         }
-        // If we reach here with less than 6 guesses it means words list is too small
-        // Just verify the game over response is returned after maxGuesses
     }
 
     @Test
     void computeFeedbackHandlesDuplicateLetters() {
-        // solution has one 'a' at position 5 (unmatched); guess has 'a' at positions 0 and 1.
-        // Pass 1: no exact matches (no letter in guess == solution at same index).
-        //         solutionCounts['a']=1 (from pos 5), solutionCounts['x']=5 (pos 0-4).
-        // Pass 2: pos 0 'a' => solutionCounts['a']=1 => PRESENT, decrement to 0.
-        //         pos 1 'a' => solutionCounts['a']=0 => ABSENT (no more 'a's to claim).
-        // Verifies that excess duplicate letters in guess are marked ABSENT.
         List<LetterFeedback> feedback = gameService.computeFeedback("aabcde", "xxxxxa");
         assertThat(feedback.get(0)).isEqualTo(LetterFeedback.PRESENT);
         assertThat(feedback.get(1)).isEqualTo(LetterFeedback.ABSENT);
@@ -106,19 +109,6 @@ class GameServiceTest {
 
     @Test
     void computeFeedbackDoesNotOverMarkDuplicates() {
-        // guess="aaaaaa", solution="xaxbcd"
-        // solution has 'a' at positions 1 and 3 (wait, let's recount)
-        // solution="xaxbcd": x,a,x,b,c,d — 'a' appears once (pos 1)
-        // guess: a,a,a,a,a,a
-        // Pass1: pos1 guess='a', solution='a' => CORRECT. solutionCounts['a'] not incremented.
-        // All others: not correct. solutionCounts for non-matching solution chars: x,x,b,c,d
-        // solutionCounts['x']=2, 'b'=1, 'c'=1, 'd'=1, 'a'=0
-        // Pass2: pos0 'a': solutionCounts['a']=0 => ABSENT
-        //        pos1: already CORRECT
-        //        pos2 'a': solutionCounts['a']=0 => ABSENT
-        //        pos3 'a': solutionCounts['a']=0 => ABSENT
-        //        pos4 'a': ABSENT
-        //        pos5 'a': ABSENT
         List<LetterFeedback> feedback = gameService.computeFeedback("aaaaaa", "xaxbcd");
         assertThat(feedback.get(0)).isEqualTo(LetterFeedback.ABSENT);
         assertThat(feedback.get(1)).isEqualTo(LetterFeedback.CORRECT);
@@ -144,8 +134,6 @@ class GameServiceTest {
 
     @Test
     void fullWinGame() {
-        // Use a known word and create a game where we know the solution
-        // by calling startGame multiple times; instead, test via computeFeedback
         String word = wordService.getWordList().get(0);
         List<LetterFeedback> feedback = gameService.computeFeedback(word, word);
         assertThat(feedback).hasSize(6).containsOnly(LetterFeedback.CORRECT);

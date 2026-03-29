@@ -1,15 +1,24 @@
 package com.wordle.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameState {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class GameState implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private String gameId;
     private String solution;
     private List<String> guesses = new ArrayList<>();
     private List<List<LetterFeedback>> feedback = new ArrayList<>();
     private GameStatus status = GameStatus.IN_PROGRESS;
     private int maxGuesses = 6;
+
+    public GameState() {}
 
     public String getGameId() { return gameId; }
     public void setGameId(String gameId) { this.gameId = gameId; }

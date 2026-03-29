@@ -6,9 +6,7 @@ metadata:
   labels:
     app: hexle-api
 spec:
-  replicas: 1  # In-memory game state cannot be shared across pods.
-               # For horizontal scaling, replace ConcurrentHashMap with
-               # a shared store (e.g. Redis) and increase replicas.
+  replicas: 2
   selector:
     matchLabels:
       app: hexle-api
@@ -26,6 +24,10 @@ spec:
           env:
             - name: SERVER_PORT
               value: "8080"
+            - name: REDIS_HOST
+              value: "hexle-redis.hexle.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
           readinessProbe:
             httpGet:
               path: /actuator/health

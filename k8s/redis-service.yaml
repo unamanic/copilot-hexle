@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hexle-redis
+  namespace: hexle
+  labels:
+    app: hexle-redis
+spec:
+  type: ClusterIP
+  selector:
+    app: hexle-redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379

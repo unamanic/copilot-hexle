@@ -1,18 +1,26 @@
 package com.wordle.api.service;
 
 import com.wordle.api.model.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class GameService {
 
-    private final Map<String, GameState> games = new ConcurrentHashMap<>();
+    private static final String KEY_PREFIX = "game:";
+
+    private final RedisTemplate<String, GameState> redisTemplate;
     private final WordService wordService;
 
-    public GameService(WordService wordService) {
+    @Value("${game.ttl.minutes:30}")
+    private long ttlMinutes;
+
+    public GameService(RedisTemplate<String, GameState> redisTemplate, WordService wordService) {
+        this.redisTemplate = redisTemplate;
         this.wordService = wordService;
     }
 
@@ -21,12 +29,12 @@ public class GameService {
         state.setGameId(UUID.randomUUID().toString());
         state.setSolution(wordService.getRandomWord());
         state.setStatus(GameStatus.IN_PROGRESS);
-        games.put(state.getGameId(), state);
+        save(state);
         return sanitize(state);
     }
 
     public GuessResponse submitGuess(String gameId, String guess) {
-        GameState state = games.get(gameId);
+        GameState state = load(gameId);
         if (state == null) {
             throw new NoSuchElementException("Game not found: " + gameId);
         }
@@ -44,18 +52,16 @@ public class GameService {
         }
 
         List<LetterFeedback> feedback = computeFeedback(normalizedGuess, state.getSolution());
-
         state.getGuesses().add(normalizedGuess);
         state.getFeedback().add(feedback);
 
         boolean isWin = normalizedGuess.equals(state.getSolution());
         boolean isLose = !isWin && state.getGuesses().size() >= state.getMaxGuesses();
 
-        if (isWin) {
-            state.setStatus(GameStatus.WIN);
-        } else if (isLose) {
-            state.setStatus(GameStatus.LOSE);
-        }
+        if (isWin) state.setStatus(GameStatus.WIN);
+        else if (isLose) state.setStatus(GameStatus.LOSE);
+
+        save(state);
 
         GuessResponse response = new GuessResponse();
         response.setFeedback(feedback);
@@ -74,7 +80,7 @@ public class GameService {
     }
 
     public GameState getGameState(String gameId) {
-        GameState state = games.get(gameId);
+        GameState state = load(gameId);
         if (state == null) {
             throw new NoSuchElementException("Game not found: " + gameId);
         }
@@ -91,7 +97,6 @@ public class GameService {
         LetterFeedback[] result = new LetterFeedback[6];
         int[] solutionCounts = new int[26];
 
-        // Pass 1: find exact matches
         for (int i = 0; i < 6; i++) {
             if (guess.charAt(i) == solution.charAt(i)) {
                 result[i] = LetterFeedback.CORRECT;
@@ -100,9 +105,8 @@ public class GameService {
             }
         }
 
-        // Pass 2: check for present/absent
         for (int i = 0; i < 6; i++) {
-            if (result[i] != null) continue; // already CORRECT
+            if (result[i] != null) continue;
             char c = guess.charAt(i);
             int idx = c - 'a';
             if (solutionCounts[idx] > 0) {
@@ -114,6 +118,14 @@ public class GameService {
         }
 
         return Arrays.asList(result);
+    }
+
+    private void save(GameState state) {
+        redisTemplate.opsForValue().set(KEY_PREFIX + state.getGameId(), state, ttlMinutes, TimeUnit.MINUTES);
+    }
+
+    private GameState load(String gameId) {
+        return redisTemplate.opsForValue().get(KEY_PREFIX + gameId);
     }
 
     /** Returns a copy of GameState without the solution (unless game is over). */
@@ -130,3 +142,4 @@ public class GameService {
         return view;
     }
 }
+
