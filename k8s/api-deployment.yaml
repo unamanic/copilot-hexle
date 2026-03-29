@@ -6,7 +6,9 @@ metadata:
   labels:
     app: hexle-api
 spec:
-  replicas: 2
+  replicas: 1  # In-memory game state cannot be shared across pods.
+               # For horizontal scaling, replace ConcurrentHashMap with
+               # a shared store (e.g. Redis) and increase replicas.
   selector:
     matchLabels:
       app: hexle-api
