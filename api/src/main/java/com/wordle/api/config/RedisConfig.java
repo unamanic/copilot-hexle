@@ -1,13 +1,14 @@
 package com.wordle.api.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import com.wordle.api.model.GameState;
 
@@ -22,10 +23,28 @@ public class RedisConfig {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        // No activateDefaultTyping — GameState is a concrete class, no polymorphism needed
 
-        Jackson2JsonRedisSerializer<GameState> serializer =
-            new Jackson2JsonRedisSerializer<>(mapper, GameState.class);
+        RedisSerializer<GameState> serializer = new RedisSerializer<>() {
+            @Override
+            public byte[] serialize(GameState value) throws SerializationException {
+                if (value == null) return null;
+                try {
+                    return mapper.writeValueAsBytes(value);
+                } catch (Exception e) {
+                    throw new SerializationException("Cannot serialize GameState", e);
+                }
+            }
+
+            @Override
+            public GameState deserialize(byte[] bytes) throws SerializationException {
+                if (bytes == null || bytes.length == 0) return null;
+                try {
+                    return mapper.readValue(bytes, GameState.class);
+                } catch (Exception e) {
+                    throw new SerializationException("Cannot deserialize GameState", e);
+                }
+            }
+        };
 
         template.setValueSerializer(serializer);
         template.setHashValueSerializer(serializer);

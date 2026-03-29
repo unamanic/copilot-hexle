@@ -1,5 +1,5 @@
 # Stage 1: Build the Spring Boot fat jar
-FROM eclipse-temurin:17-jdk-jammy AS build
+FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /workspace
 
 # Copy Gradle wrapper and root build files
@@ -20,7 +20,7 @@ COPY api/src api/src
 RUN chmod +x gradlew && ./gradlew :api:bootJar --no-daemon -x test
 
 # Stage 2: Minimal JRE runtime image
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:21-jre-jammy
 RUN groupadd --system app && useradd --system --gid app app
 WORKDIR /app
 

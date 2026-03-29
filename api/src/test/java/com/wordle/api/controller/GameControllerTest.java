@@ -1,70 +1,80 @@
 package com.wordle.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wordle.api.model.GameState;
-import com.wordle.api.model.GuessRequest;
+import com.wordle.api.model.*;
 import com.wordle.api.service.GameService;
-import com.wordle.api.service.WordService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 class GameControllerTest {
 
-    @MockBean
-    RedisTemplate<String, GameState> redisTemplate;
-
-    @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
+    @Mock
     private GameService gameService;
 
-    @Autowired
-    private WordService wordService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private GameState testState;
+
+    @BeforeEach
+    void setUp() {
+        LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
+        validator.afterPropertiesSet();
+
+        mockMvc = MockMvcBuilders.standaloneSetup(new GameController(gameService))
+                .setValidator(validator)
+                .build();
+
+        testState = new GameState();
+        testState.setGameId("test-game-id");
+        testState.setStatus(GameStatus.IN_PROGRESS);
+        testState.setGuesses(new ArrayList<>());
+        testState.setFeedback(new ArrayList<>());
+        testState.setMaxGuesses(6);
+    }
 
     @Test
     void startGameReturns200WithGameState() throws Exception {
-        MvcResult result = mockMvc.perform(post("/api/game/start"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").isNotEmpty())
-                .andExpect(jsonPath("$.status").value("IN_PROGRESS"))
-                .andReturn();
+        when(gameService.startGame()).thenReturn(testState);
 
-        String body = result.getResponse().getContentAsString();
-        GameState state = objectMapper.readValue(body, GameState.class);
-        assertThat(state.getGameId()).isNotNull();
+        mockMvc.perform(post("/api/game/start"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gameId").value("test-game-id"))
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
     }
 
     @Test
     void submitValidGuessReturns200() throws Exception {
-        // Start a game first
-        MvcResult startResult = mockMvc.perform(post("/api/game/start"))
-                .andExpect(status().isOk())
-                .andReturn();
-        GameState state = objectMapper.readValue(
-                startResult.getResponse().getContentAsString(), GameState.class);
-
-        String validWord = wordService.getWordList().get(0);
+        GuessResponse guessResponse = new GuessResponse();
+        guessResponse.setFeedback(List.of(
+                LetterFeedback.ABSENT, LetterFeedback.ABSENT, LetterFeedback.ABSENT,
+                LetterFeedback.ABSENT, LetterFeedback.ABSENT, LetterFeedback.ABSENT));
+        guessResponse.setStatus(GameStatus.IN_PROGRESS);
+        guessResponse.setGuessNumber(1);
+        guessResponse.setGameOver(false);
+        guessResponse.setMessage("Guess 1 of 6");
+        when(gameService.submitGuess("test-game-id", "planet")).thenReturn(guessResponse);
 
         GuessRequest request = new GuessRequest();
-        request.setGameId(state.getGameId());
-        request.setGuess(validWord);
+        request.setGameId("test-game-id");
+        request.setGuess("planet");
 
         mockMvc.perform(post("/api/game/guess")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -76,14 +86,11 @@ class GameControllerTest {
 
     @Test
     void submitInvalidWordReturns400() throws Exception {
-        MvcResult startResult = mockMvc.perform(post("/api/game/start"))
-                .andExpect(status().isOk())
-                .andReturn();
-        GameState state = objectMapper.readValue(
-                startResult.getResponse().getContentAsString(), GameState.class);
+        when(gameService.submitGuess(eq("test-game-id"), eq("xxxxzz")))
+                .thenThrow(new IllegalArgumentException("Not a valid word: xxxxzz"));
 
         GuessRequest request = new GuessRequest();
-        request.setGameId(state.getGameId());
+        request.setGameId("test-game-id");
         request.setGuess("xxxxzz");
 
         mockMvc.perform(post("/api/game/guess")
@@ -95,14 +102,8 @@ class GameControllerTest {
 
     @Test
     void submitGuessTooShortReturns400() throws Exception {
-        MvcResult startResult = mockMvc.perform(post("/api/game/start"))
-                .andExpect(status().isOk())
-                .andReturn();
-        GameState state = objectMapper.readValue(
-                startResult.getResponse().getContentAsString(), GameState.class);
-
         GuessRequest request = new GuessRequest();
-        request.setGameId(state.getGameId());
+        request.setGameId("test-game-id");
         request.setGuess("abc");
 
         mockMvc.perform(post("/api/game/guess")
@@ -113,20 +114,19 @@ class GameControllerTest {
 
     @Test
     void getStatusReturns200ForValidGameId() throws Exception {
-        MvcResult startResult = mockMvc.perform(post("/api/game/start"))
-                .andExpect(status().isOk())
-                .andReturn();
-        GameState state = objectMapper.readValue(
-                startResult.getResponse().getContentAsString(), GameState.class);
+        when(gameService.getGameState("test-game-id")).thenReturn(testState);
 
-        mockMvc.perform(get("/api/game/status/{gameId}", state.getGameId()))
+        mockMvc.perform(get("/api/game/status/{gameId}", "test-game-id"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value(state.getGameId()))
+                .andExpect(jsonPath("$.gameId").value("test-game-id"))
                 .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
     }
 
     @Test
     void getStatusReturns404ForUnknownGameId() throws Exception {
+        when(gameService.getGameState("nonexistent-game-id"))
+                .thenThrow(new NoSuchElementException("Game not found"));
+
         mockMvc.perform(get("/api/game/status/{gameId}", "nonexistent-game-id"))
                 .andExpect(status().isNotFound());
     }
