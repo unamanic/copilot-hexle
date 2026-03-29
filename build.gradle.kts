@@ -4,6 +4,6 @@ plugins {
 }
 
 allprojects {
-    group = "com.wordle"
+    group = "com.hexle"
     version = "0.0.1-SNAPSHOT"
 }

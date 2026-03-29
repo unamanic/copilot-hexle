@@ -1,6 +1,6 @@
-package com.wordle.api.service;
+package com.hexle.api.service;
 
-import com.wordle.api.model.*;
+import com.hexle.api.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,9 +43,9 @@ class GameServiceTest {
         }).when(valueOperations).set(anyString(), any(), anyLong(), any());
         when(valueOperations.get(anyString())).thenAnswer(inv -> store.get(inv.getArgument(0)));
 
-        List<String> wordList = Arrays.asList("castle", "planet", "bridge", "orange", "purple", "yellow", "wordle");
+        List<String> wordList = Arrays.asList("castle", "planet", "bridge", "orange", "purple", "yellow", "garden");
         when(wordService.getWordList()).thenReturn(wordList);
-        when(wordService.getRandomWord()).thenReturn("wordle");
+        when(wordService.getRandomWord()).thenReturn("castle");
         when(wordService.isValidWord(anyString())).thenAnswer(inv -> wordList.contains(inv.getArgument(0)));
 
         gameService = new GameService(redisTemplate, wordService);
@@ -80,7 +80,7 @@ class GameServiceTest {
         GameState state = gameService.startGame();
         String gameId = state.getGameId();
 
-        // wordService returns "wordle" as solution; iterate through other words until LOSE
+        // wordService returns "castle" as solution; iterate through other words until LOSE
         List<String> words = wordService.getWordList();
         for (String w : words) {
             try {

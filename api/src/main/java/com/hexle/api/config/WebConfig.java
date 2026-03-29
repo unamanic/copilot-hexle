@@ -1,4 +1,4 @@
-package com.wordle.api.config;
+package com.hexle.api.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

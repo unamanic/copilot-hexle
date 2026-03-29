@@ -10,7 +10,7 @@ A Gradle multi-module project for Hexle, a 6-letter word guessing game, featurin
 ## Project Structure
 
 ```
-wordle-clone/
+hexle/
 ├── build.gradle[.kts]         # Root Gradle build
 ├── settings.gradle[.kts]
 ├── api/                       # Spring Boot backend
@@ -28,7 +28,7 @@ wordle-clone/
 ## API Module (Spring Boot)
 
 ### Responsibilities
-- Game logic (6-letter Wordle)
+- Game logic (6-letter Hexle)
 - Word selection (random, from dictionary)
 - Guess validation and feedback
 - Game state management (stateless or session-based)

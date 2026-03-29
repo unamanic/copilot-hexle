@@ -1,4 +1,4 @@
-package com.wordle.api.config;
+package com.hexle.api.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -10,7 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import com.wordle.api.model.GameState;
+import com.hexle.api.model.GameState;
 
 @Configuration
 public class RedisConfig {

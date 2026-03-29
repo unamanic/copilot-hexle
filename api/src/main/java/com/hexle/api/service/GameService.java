@@ -1,6 +1,6 @@
-package com.wordle.api.service;
+package com.hexle.api.service;
 
-import com.wordle.api.model.*;
+import com.hexle.api.model.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -96,7 +96,7 @@ public class GameService {
     }
 
     /**
-     * Computes per-letter Wordle feedback, correctly handling duplicate letters.
+     * Computes per-letter Hexle feedback, correctly handling duplicate letters.
      * Pass 1: mark CORRECT letters (right letter, right position).
      * Pass 2: for remaining letters, mark PRESENT if the letter still appears
      *         in unmatched positions of the solution; otherwise ABSENT.

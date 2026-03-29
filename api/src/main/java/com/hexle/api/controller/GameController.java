@@ -1,9 +1,9 @@
-package com.wordle.api.controller;
+package com.hexle.api.controller;
 
-import com.wordle.api.model.GameState;
-import com.wordle.api.model.GuessRequest;
-import com.wordle.api.model.GuessResponse;
-import com.wordle.api.service.GameService;
+import com.hexle.api.model.GameState;
+import com.hexle.api.model.GuessRequest;
+import com.hexle.api.model.GuessResponse;
+import com.hexle.api.service.GameService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

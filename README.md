@@ -16,7 +16,7 @@ A 6-letter word guessing game built with Spring Boot (API) and React + Redux + V
 
 ## Features
 
-- 6-letter Wordle-style gameplay with 6 attempts
+- 6-letter Hexle-style gameplay with 6 attempts
 - 22,000+ word dictionary
 - Color-coded feedback (🟩 correct, 🟨 present, ⬜ absent)
 - On-screen responsive keyboard (mobile friendly)

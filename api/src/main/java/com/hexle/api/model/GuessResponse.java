@@ -1,4 +1,4 @@
-package com.wordle.api.model;
+package com.hexle.api.model;
 
 import java.util.List;
 

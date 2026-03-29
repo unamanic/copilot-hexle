@@ -1,8 +1,8 @@
-package com.wordle.api.controller;
+package com.hexle.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wordle.api.model.*;
-import com.wordle.api.service.GameService;
+import com.hexle.api.model.*;
+import com.hexle.api.service.GameService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,4 +1,4 @@
-package com.wordle.api.model;
+package com.hexle.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

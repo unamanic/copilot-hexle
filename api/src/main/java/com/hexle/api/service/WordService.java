@@ -1,4 +1,4 @@
-package com.wordle.api.service;
+package com.hexle.api.service;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
