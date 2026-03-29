@@ -1,6 +1,7 @@
 package com.wordle.api.model;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class GuessRequest {
@@ -10,6 +11,7 @@ public class GuessRequest {
 
     @NotBlank(message = "guess must not be blank")
     @Size(min = 6, max = 6, message = "guess must be exactly 6 letters")
+    @Pattern(regexp = "^[a-zA-Z]{6}$", message = "guess must contain only letters")
     private String guess;
 
     public String getGameId() { return gameId; }

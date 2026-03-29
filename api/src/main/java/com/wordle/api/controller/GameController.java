@@ -13,7 +13,6 @@ import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/game")
-@CrossOrigin(origins = "http://localhost:3000")
 public class GameController {
 
     private final GameService gameService;

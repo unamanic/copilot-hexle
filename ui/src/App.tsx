@@ -32,7 +32,11 @@ function App() {
 
   useEffect(() => {
     if (gameId) {
-      Cookies.set(GAME_COOKIE, gameId, { expires: 1 / 48 })
+      Cookies.set(GAME_COOKIE, gameId, {
+        expires: 1 / 48,     // 30 minutes
+        secure: true,        // HTTPS only
+        sameSite: 'Strict',  // CSRF protection
+      })
     }
   }, [gameId])
 

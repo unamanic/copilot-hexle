@@ -33,6 +33,14 @@ public class GameService {
         return sanitize(state);
     }
 
+    /**
+     * Submits a guess for the given game.
+     * Note: this method performs a non-atomic read-modify-write on Redis.
+     * Concurrent requests for the same gameId are not expected in normal gameplay
+     * (one player, one game), but under load could result in lost updates.
+     * For multi-player or high-concurrency use, replace with a Redis Lua script
+     * or optimistic locking with a version field.
+     */
     public GuessResponse submitGuess(String gameId, String guess) {
         GameState state = load(gameId);
         if (state == null) {

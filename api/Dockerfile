@@ -21,9 +21,11 @@ RUN chmod +x gradlew && ./gradlew :api:bootJar --no-daemon -x test
 
 # Stage 2: Minimal JRE runtime image
 FROM eclipse-temurin:17-jre-jammy
+RUN groupadd --system app && useradd --system --gid app app
 WORKDIR /app
 
-COPY --from=build /workspace/api/build/libs/*.jar app.jar
+COPY --from=build --chown=app:app /workspace/api/build/libs/*.jar app.jar
 
+USER app
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
