@@ -9,6 +9,7 @@ import { GameOver } from './components/GameOver/GameOver'
 import { Toast } from './components/Toast/Toast'
 import { CookieBanner } from './components/CookieBanner/CookieBanner'
 import { InstallPrompt } from './components/InstallPrompt/InstallPrompt'
+import { Legend } from './components/Legend/Legend'
 import { useTheme } from './hooks/useTheme'
 import styles from './App.module.css'
 
@@ -71,6 +72,7 @@ function App() {
       <Header theme={theme} onToggleTheme={toggleTheme} />
       <main className={styles.main}>
         <GameBoard />
+        <Legend />
         <Keyboard />
       </main>
       <GameOver />
