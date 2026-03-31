@@ -21,7 +21,7 @@ spec:
         runAsGroup: 101
       containers:
         - name: hexle-ui
-          image: unamanic/hexle-ui:e0f6c42
+          image: unamanic/hexle-ui:5ff059b
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
