@@ -1,0 +1,29 @@
+{
+  "name": "Hexle",
+  "short_name": "Hexle",
+  "description": "6-letter word game",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#15173D",
+  "theme_color": "#982598",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

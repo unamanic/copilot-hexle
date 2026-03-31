@@ -3,9 +3,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: #121213;
+  background: var(--bg);
   font-family: 'Clear Sans', 'Helvetica Neue', sans-serif;
-  color: #ffffff;
+  color: var(--text);
 }
 
 .main {

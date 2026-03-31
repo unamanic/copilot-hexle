@@ -8,6 +8,8 @@ import { Keyboard } from './components/Keyboard/Keyboard'
 import { GameOver } from './components/GameOver/GameOver'
 import { Toast } from './components/Toast/Toast'
 import { CookieBanner } from './components/CookieBanner/CookieBanner'
+import { InstallPrompt } from './components/InstallPrompt/InstallPrompt'
+import { useTheme } from './hooks/useTheme'
 import styles from './App.module.css'
 
 const GAME_COOKIE = 'hexle_game_id'
@@ -15,6 +17,7 @@ const GAME_COOKIE = 'hexle_game_id'
 function App() {
   const dispatch = useAppDispatch()
   const { currentInput, status, gameId, error } = useAppSelector((s) => s.game)
+  const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
     const existingId = Cookies.get(GAME_COOKIE)
@@ -65,13 +68,14 @@ function App() {
   return (
     <div className={styles.app}>
       <Toast message={error} onDismiss={() => dispatch(clearError())} />
-      <Header />
+      <Header theme={theme} onToggleTheme={toggleTheme} />
       <main className={styles.main}>
         <GameBoard />
         <Keyboard />
       </main>
       <GameOver />
       <CookieBanner />
+      <InstallPrompt />
     </div>
   )
 }

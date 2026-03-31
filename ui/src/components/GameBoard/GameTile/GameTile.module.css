@@ -1,35 +1,38 @@
 .tile {
   width: 62px;
   height: 62px;
-  border: 2px solid #3a3a3c;
+  border: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2rem;
   font-weight: 700;
   text-transform: uppercase;
-  color: #ffffff;
+  color: var(--text);
   background: transparent;
   user-select: none;
 }
 
 .filled {
-  border-color: #565758;
+  border-color: var(--border-filled);
 }
 
 .correct {
-  background: #538d4e;
-  border-color: #538d4e;
+  background: var(--correct);
+  border-color: var(--correct);
+  color: #ffffff;
 }
 
 .present {
-  background: #b59f3b;
-  border-color: #b59f3b;
+  background: var(--present);
+  border-color: var(--present);
+  color: var(--present-text);
 }
 
 .absent {
-  background: #3a3a3c;
-  border-color: #3a3a3c;
+  background: var(--absent);
+  border-color: var(--absent);
+  color: var(--absent-text);
 }
 
 .flip {

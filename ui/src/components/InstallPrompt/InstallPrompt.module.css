@@ -4,10 +4,11 @@
   left: 0;
   right: 0;
   background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
-  padding: 16px 24px;
-  z-index: 500;
+  border-top: 2px solid var(--correct);
+  padding: 14px 20px;
+  z-index: 600;
   animation: slideUp 0.3s ease;
+  /* avoid overlap with cookie banner (z-index 500) */
 }
 
 @keyframes slideUp {
@@ -20,61 +21,58 @@
   margin: 0 auto;
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
 .text {
   flex: 1;
   margin: 0;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-.text code {
+  font-size: 0.875rem;
   color: var(--text);
-  background: var(--bg);
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: 0.8rem;
+  line-height: 1.5;
+  min-width: 0;
 }
 
 .actions {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.accept {
-  padding: 8px 20px;
+.install {
+  padding: 8px 18px;
   background: var(--correct);
-  color: #fff;
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   font-weight: 700;
   font-size: 0.85rem;
   font-family: inherit;
   cursor: pointer;
+  white-space: nowrap;
   transition: filter 0.2s;
 }
 
-.accept:hover { filter: brightness(1.15); }
+.install:hover {
+  filter: brightness(1.15);
+}
 
-.decline {
-  padding: 8px 20px;
+.dismiss {
+  padding: 6px 10px;
   background: transparent;
   color: var(--text-muted);
   border: 1px solid var(--border);
   border-radius: 4px;
-  font-weight: 700;
   font-size: 0.85rem;
   font-family: inherit;
   cursor: pointer;
   transition: color 0.2s, border-color 0.2s;
+  line-height: 1;
 }
 
-.decline:hover {
+.dismiss:hover {
   color: var(--text);
   border-color: var(--border-filled);
 }

@@ -5,6 +5,14 @@ import { store } from './store'
 import './index.css'
 import App from './App.tsx'
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // SW registration is best-effort; failure should not affect the app
+    })
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>

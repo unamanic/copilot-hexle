@@ -3,8 +3,8 @@
   top: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #ffffff;
-  color: #121213;
+  background-color: var(--text);
+  color: var(--bg);
   font-weight: 700;
   font-size: 0.875rem;
   padding: 12px 20px;
