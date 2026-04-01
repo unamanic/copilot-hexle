@@ -22,6 +22,23 @@ function buildShareText(
   return `Hexle ${score}\n\n${grid}`;
 }
 
+async function copyToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  // Fallback for non-secure contexts (HTTP)
+  const el = document.createElement('textarea');
+  el.value = text;
+  el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(el);
+  el.focus();
+  el.select();
+  const ok = document.execCommand('copy');
+  document.body.removeChild(el);
+  if (!ok) throw new Error('Copy failed');
+}
+
 export function GameOver() {
   const dispatch = useAppDispatch();
   const { status, guesses, solution, feedback, maxGuesses, gameId } = useAppSelector((s) => s.game);
@@ -33,8 +50,12 @@ export function GameOver() {
 
   const handleCopyResults = async () => {
     const text = buildShareText(guesses, feedback, status, maxGuesses);
-    await navigator.clipboard.writeText(text);
-    setCopyLabel('Copied!');
+    try {
+      await copyToClipboard(text);
+      setCopyLabel('Copied!');
+    } catch {
+      setCopyLabel('Copy failed');
+    }
     setTimeout(() => setCopyLabel('📋 Copy Results'), 2000);
   };
 
@@ -43,7 +64,7 @@ export function GameOver() {
     try {
       const { token } = await createChallengeToken(gameId);
       const url = `${window.location.origin}?challenge=${token}`;
-      await navigator.clipboard.writeText(url);
+      await copyToClipboard(url);
       setChallengeLabel('Link Copied!');
       setTimeout(() => setChallengeLabel('⚔️ Challenge a Friend'), 2000);
     } catch {
