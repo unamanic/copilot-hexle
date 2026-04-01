@@ -21,6 +21,16 @@ function App() {
   const { theme, toggleTheme } = useTheme()
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const challengeToken = params.get('challenge')
+
+    if (challengeToken) {
+      // Remove the token from the URL immediately so it isn't re-used on refresh
+      window.history.replaceState({}, '', window.location.pathname)
+      dispatch(startGameThunk(challengeToken))
+      return
+    }
+
     const existingId = Cookies.get(GAME_COOKIE)
     if (existingId) {
       dispatch(resumeGameThunk(existingId)).then((action) => {

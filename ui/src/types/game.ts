@@ -11,6 +11,7 @@ export interface GameState {
   loading: boolean;
   error: string | null;
   currentInput: string;
+  challengerAttempts: number | null;
 }
 
 export interface ApiGameState {
@@ -29,4 +30,13 @@ export interface GuessResponse {
   gameOver: boolean;
   solution?: string;
   message?: string;
+}
+
+export interface StartGameResponse {
+  gameId: string;
+  challengerAttempts?: number;
+}
+
+export interface CreateChallengeResponse {
+  token: string;
 }

@@ -40,6 +40,55 @@
   letter-spacing: 0.15rem;
 }
 
+.emojiGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1.4;
+}
+
+.emojiRow {
+  font-size: 1.4rem;
+  letter-spacing: 0.05rem;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.shareButton,
+.challengeButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
+  transition: filter 0.2s;
+  min-width: 160px;
+}
+
+.shareButton {
+  background: var(--present);
+  color: #ffffff;
+}
+
+.challengeButton {
+  background: var(--correct);
+  color: #ffffff;
+}
+
+.shareButton:hover,
+.challengeButton:hover {
+  filter: brightness(1.15);
+}
+
 .playAgain {
   padding: 12px 32px;
   background: var(--correct);

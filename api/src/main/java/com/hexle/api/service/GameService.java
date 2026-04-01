@@ -33,6 +33,45 @@ public class GameService {
         return sanitize(state);
     }
 
+    public GameState startGameWithWord(String word) {
+        GameState state = new GameState();
+        state.setGameId(UUID.randomUUID().toString());
+        state.setSolution(word.toLowerCase());
+        state.setStatus(GameStatus.IN_PROGRESS);
+        save(state);
+        return sanitize(state);
+    }
+
+    /**
+     * Returns the solution word for a completed game.
+     *
+     * @throws NoSuchElementException  if game not found
+     * @throws IllegalStateException   if game is still in progress
+     */
+    public String getWordForGame(String gameId) {
+        GameState state = load(gameId);
+        if (state == null) {
+            throw new NoSuchElementException("Game not found: " + gameId);
+        }
+        if (state.getStatus() == GameStatus.IN_PROGRESS) {
+            throw new IllegalStateException("Game is not yet over");
+        }
+        return state.getSolution();
+    }
+
+    /**
+     * Returns the number of guesses made in the given game (completed or in-progress).
+     *
+     * @throws NoSuchElementException if game not found
+     */
+    public int getGuessCountForGame(String gameId) {
+        GameState state = load(gameId);
+        if (state == null) {
+            throw new NoSuchElementException("Game not found: " + gameId);
+        }
+        return state.getGuesses().size();
+    }
+
     /**
      * Submits a guess for the given game.
      * Note: this method performs a non-atomic read-modify-write on Redis.
