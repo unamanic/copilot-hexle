@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useState } from 'react'
 import Cookies from 'js-cookie'
 import { useAppDispatch, useAppSelector } from './store/hooks'
 import { startGameThunk, submitGuessThunk, addLetter, removeLetter, clearError, resumeGameThunk } from './store/gameSlice'
@@ -10,6 +10,7 @@ import { Toast } from './components/Toast/Toast'
 import { CookieBanner } from './components/CookieBanner/CookieBanner'
 import { InstallPrompt } from './components/InstallPrompt/InstallPrompt'
 import { Legend } from './components/Legend/Legend'
+import { About } from './components/About/About'
 import { useTheme } from './hooks/useTheme'
 import styles from './App.module.css'
 
@@ -19,6 +20,7 @@ function App() {
   const dispatch = useAppDispatch()
   const { currentInput, status, gameId, error } = useAppSelector((s) => s.game)
   const { theme, toggleTheme } = useTheme()
+  const [showAbout, setShowAbout] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -76,16 +78,25 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAbout(false)
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [])
+
   return (
     <div className={styles.app}>
       <Toast message={error} onDismiss={() => dispatch(clearError())} />
-      <Header theme={theme} onToggleTheme={toggleTheme} />
+      <Header theme={theme} onToggleTheme={toggleTheme} onShowAbout={() => setShowAbout(true)} />
       <main className={styles.main}>
         <GameBoard />
         <Legend />
         <Keyboard />
       </main>
       <GameOver />
+      {showAbout && <About onClose={() => setShowAbout(false)} />}
       <CookieBanner />
       <InstallPrompt />
     </div>

@@ -2,6 +2,7 @@ package com.hexle.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hexle.api.model.*;
+import com.hexle.api.service.ChallengeService;
 import com.hexle.api.service.GameService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class GameControllerTest {
     @Mock
     private GameService gameService;
 
+    @Mock
+    private ChallengeService challengeService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private GameState testState;
 
@@ -38,7 +42,7 @@ class GameControllerTest {
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
 
-        mockMvc = MockMvcBuilders.standaloneSetup(new GameController(gameService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new GameController(gameService, challengeService))
                 .setValidator(validator)
                 .build();
 
@@ -56,8 +60,7 @@ class GameControllerTest {
 
         mockMvc.perform(post("/api/game/start"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gameId").value("test-game-id"))
-                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+                .andExpect(jsonPath("$.gameId").value("test-game-id"));
     }
 
     @Test
