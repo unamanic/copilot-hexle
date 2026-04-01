@@ -9,3 +9,6 @@ node_modules/
 dist/
 ui/.vite/
 ui/node_modules/
+
+# Local deployment config (not committed)
+deploy/
